@@ -1,0 +1,5 @@
+about
+linear-regression
+intro-to-linear-regression
+demo
+ordinary-least-sqaures-explained
