@@ -57,7 +57,7 @@ $$
 
 - Variance of residuals
 
-## Demo
+### Demo
 
 I made a fake crossfit dataset for this demo:
 
@@ -115,3 +115,188 @@ ggplot(mydat, aes(x=classes, y=clean_weight, color=sex)) +
 
 
 ## Ordinary Least Sqaures Explained
+
+As a reminder, the example we'll use is looking at the relationship between experience (x) and performance (y). Linear regression will help us to characterize the relationship. 
+
+$$
+y = \beta_0 + \beta_1x  + \epsilon
+$$
+- $\beta_0$ is the value of Y when x = 0
+
+- $\beta_1$ is the expected change in Y for every 1 unit change in x 
+
+How do we obtain the best possible estimates for $\beta_0$ and $\beta_1$? 
+
+In our sample, our model looks like this:
+
+$$
+\hat{y} = b_0 + b_1x
+$$
+$$
+y = b_0 + b_1x + e
+$$
+$$
+y = \hat{y} + e
+$$
+$$
+e = y - \hat{y}
+$$
+- The residual is the difference between the observed data point and the predicted value (e.g., the point on the regression line)
+- We want to minimize the overall residual
+
+$$
+min[\sum(y - \hat{y})^2]
+$$
+
+- Because some data points fall above the regression line and some fall below, there will be some + and some - values, which will cancel out
+- We could take the absolute values, but it's easier and more common to take the square of the residuals
+- We can visualize this by drawing a box at each data point with the height and width equal to the residual value
+- The goal of ordinary least squares is to minimize the sum of the boxes
+
+
+![](images/ordinary_least_squares.png)
+
+While we're interested in $beta_0$ and $beta_1$, we get the samples $b_0$ and $b_1$ but we can interpret the estimates in the same way. We use the samples to make inferences of the population parameters. 
+
+One other note, ordinary least squares can be sensitive to outlier observations. We can imagine if there was an outlier in the image above, the box would be much bigger and the regression line would have to account for that. 
+
+## Testing the Model
+
+How much variance of performance can be explained by experience ($R^2)$? More generally, does our predictor(s) have any significant impact on our outcome?
+
+Here, we will focus on overall F model (ANOVA). 
+
+In the absence of any other knowledge about an individual, the best guess you could make with regards to their performance is taking the overall mean ($\bar{y}$). In our F test, we are comparing how much better we do with $\hat{y}$ (when we have more information about x) compared to $\bar{y}$. 
+
+If our predictor value is any good, we would expect any given observed data point to be closer to the predicted value relative to the mean value. 
+
+$$
+y = \hat{y} + e
+$$
+$$
+(y-\bar{y}) = (\hat{y}-\bar{y}) + (y-\hat{y})
+$$
+But we want overall, not just for one individual point. Similar to ordinary least squares, we can take the sums of squares to decompose variability across individuals. 
+
+$$
+\sum(y-\bar{y})^2 = \sum(\hat{y}-\bar{y})^2 + \sum(y-\hat{y})^2
+$$
+
+
+$$
+SS_{TOT} = SS_{REG} + SS_{ERR}
+$$ 
+A good model:
+
+- $SS_{REG}$ = large
+- $SS_{ERR}$ = small
+
+$$
+R^2 = SS_{REG}/SS_{TOT} 
+$$ 
+$R^2$ = coefficient of determination, which can be interpreted as the proportion of variance in y (performance) that is explained by x (experience).
+
+- $R^2$ = .2 means that 20% of variance in performance is explained by experience. 
+- But at what point can we confidently say that a real effect does exist?
+
+### Degrees of Freedom 
+
+Degrees of freedom = how many unique pieces of information do you have? and how many pieces of information did you use up? Subtract how many you used up from how many you had to get DF. 
+
+
+$$
+\sum(y-\bar{y})^2 = \sum(\hat{y}-\bar{y})^2 + \sum(y-\hat{y})^2
+$$ 
+$$
+(N-1) = (p-1) + (N-p)
+$$
+*p is number of parameters in regression model
+
+$$
+\sum(y-\bar{y})^2/(N-1) = \sum(\hat{y}-\bar{y})^2/(p-1) + \sum(y-\hat{y})^2/(N-p)
+$$  
+Which also equals:
+
+$$
+MS_{TOT} \neq MS_{REG} + MS_{ERR}
+$$ 
+*note this is not additive 
+
+Why go through all of this?? Because we can get a ratio. 
+
+$$
+F^* = MS_{REG} / MS_{ERR}
+$$ 
+- One way to think about this is like a signal to noise ratio.
+- Under the null hypothesis:
+
+$$
+F^*  \sim F(p-1, N-p)
+$$ 
+F distribution is an asymmetric distribution. If there's really no effect, most F* will be on the low end. If there's an effect, F* will be far out in the tail of the distribution and when you calculate the area under the curve beyond F*, it will be < 0.05 and can conclude, model is explaining variance in the outcome. 
+
+Report something that looks like this (numbers are completely made up):
+
+$R^2$ = .43; F(1,15) = 17.3; p = 0.012. 
+
+### Demo 1
+
+How does the number of classes you attend affect your clean weight?
+
+```{r}
+mydat
+
+ggplot(mydat, aes(x=classes, y=clean_weight)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Number of Classes", y = "Clean Weight (pounds)") +
+  geom_smooth(method = "lm", se = FALSE)  +
+  stat_cor(label.x = 60, label.y = 80) +
+  stat_regline_equation(label.x = 60, label.y = 65) 
+```
+
+- Is the strength of the data sufficient to conclude that there's actually a relationship in the population and not just due to chance
+
+```{r}
+m1 <- lm(classes ~ clean_weight, data = mydat)
+
+summary(m1)
+```
+
+$R^2$ = .34; F(1,13) = 6.671; p = 0.023
+
+### Demo 2
+
+How does the number of beers you drink affect your sobriety test score? 
+
+```{r}
+data_beer <- read_csv("data/beers.csv")
+
+data_beer
+
+ggplot(data_beer, aes(x=beers, y=second_sober)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Number of Beers", y = "Test Score") +
+  geom_smooth(method = "lm", se = FALSE)  +
+  stat_cor(label.x = 5, label.y = 5.5) +
+  stat_regline_equation(label.x = 5, label.y = 5) 
+```
+
+```{r}
+m_beers <- lm(beers ~ second_sober, data = data_beer)
+
+summary(m_beers)
+```
+
+$R^2$ = .34; F(1,14) = 7.37; p = 0.0168
+
+- Right now, only one predictor, so the t test and the F test are essentially testing the same thing, but once you have more predictors, the t tests will test each individual predictor and the F test will give an overall results for entire set of predictors. 
+
+
+
+
+
+
+
+
