@@ -274,7 +274,7 @@ data_beer <- read_csv("data/beers.csv")
 
 data_beer
 
-ggplot(data_beer, aes(x=beers, y=second_sober)) +
+plot_beers_sobriety <- ggplot(data_beer, aes(x=beers, y=second_sober)) +
   geom_point() +
   theme_bw() +
   labs(x = "Number of Beers", y = "Test Score") +
@@ -293,10 +293,239 @@ $R^2$ = .34; F(1,14) = 7.37; p = 0.0168
 
 - Right now, only one predictor, so the t test and the F test are essentially testing the same thing, but once you have more predictors, the t tests will test each individual predictor and the F test will give an overall results for entire set of predictors. 
 
+## Inferences about Specific Parameters
+
+Reminder....
+
+Population:
+
+$$
+Y = \beta_0 + \beta_1  + \epsilon
+$$
+
+Sample:
+
+$$
+y = b_0 + b_1  + e
+$$
+- goal is to take estimates of $b_0$ and $b_1$ and make inferences about population parameters
+- t tests and confidence can help us understand
+
+### T test
+
+Null hypothesis:
+
+$$
+H_0: \beta_1 = 0
+$$
+Alternative hypothesis (two-tailed):
+
+$$
+H_A: \beta_1 \neq 0
+$$
+or one tail (> or <):
+
+$$
+H_A: \beta_1 > 0
+$$
+To calculate a z statistic you would need to know the SD 
+
+$$
+(\beta_1 - 0)/SD(\beta_1)
+$$
+But we don't know the SD, we can only obtain an estimate SE, which leads us to the T statistic as opposed to Z statistic
+
+$$
+t^* = (\beta_1 - 0)/SE(\beta_1)
+$$
+Where...
+
+$$
+t^* \sim t(N-P)
+$$
+Essentially, you just look up the t statistic and get your p value.
+
+#### Demo 
+
+- looking at relationship between beers consumed and road sobriety test score
+
+```{r}
+data_beer
+
+plot_beers_sobriety
+
+summary(m_beers)
+```
+
+- reject null hypothesis because t value = -2.714 which is unlikely to happen by chance
+- rejecting means we accept the alternative which is that it is not 0...but how helpful is that really?
+
+### Confidence Intervals
+
+CI have a number of advantages over t tests:
+
+- overall precision of estimate
+- interval of plausible range of values for $beta_1$
+- interval excludes 0 = reject null = significant test
+- interval includes 0 = no reject null = non-significant test
+
+Like t test, the idea is that we can sample from our population over and over again and get a sampling distribution of values for our estimated slopes, so based on the idea of repeated sampling. We expect that 95% of the sampled $b_1$ estimates would fall within +/- 2 SD interval (that includes the true $\beta_1$ parameter). So the idea is, we take our estimate and extend by our margin of error (+/- 2 SD) and 95% of the time, that should include the actual $\beta_1$ (the true value).
+
+But, again we don't know the SD. So, instead we take the t value.
+
+Confidence interval:
+
+$$
+b_1 +- t_{crit}(alpha, N-p)SE(b_1)
+$$
+
+```{r}
+confint(m_beers)
+```
+
+CI: -1.6 to -0.190, excludes 0 so reject null. We have no way to know if this specific interval is one of the 5% that does not include the true value, but good odds which we are willing to take. 
+
+How to interpret CI?
+- 95% of the time our interval will contain the true population value, but no way to know if this interval is one of the 95% or not
+
+## Multiple Regression
+
+In practice, we usually have more than one predictor of interest. 
+
+$$
+y = \beta_0 + \beta_1x_1 + \epsilon
+$$
+$$
+y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \epsilon
+$$
+With two predictors, rather than a line we end up having another dimension for the new predictor so we have a regression plane. As soon as you get more than 2 predictors, it's almost hard or impossible to visualize, but the math is still relatively similar straightforward.
+
+Why is multiple regression so powerful?
+
+1. Multidetermined - in multiple regression we can to incorporate multiple determinants of an outcome simultaneously 
+2. Enhance predictions - can increase our $R^2$ to make our model better by explaining more variance
+3. MSE decreases - can often result in increased power
+4. Statistical control - especially when we have potentially confounding variables. We can estimate the effect of each individual predictor while holding the others constant or controlling for the other predictors
+
+$$
+E(y) = \beta_0 + \beta_1x
+$$
+Remember the intercept is:
+
+$$
+E(y|x=0) = \beta_0 
+$$
+And our slope is:
 
 
+$$
+E(y|x=a) = \beta_0 + \beta_1a
+$$
+
+$$
+E(y|x=a+1) = \beta_0 + \beta_1(a+1)
+$$
+If we take the difference, we're left with $\beta_1$ which is our slope. In other words, our slope is the change in y as a function of a 1 unit difference in x.
+
+We have to account for the fact that variables may be related or confounded with each other. 
+
+With multiple predictors, our intercept is very similar:
+
+$$
+E(y|x_1=0, x_2=0) = \beta_0 
+$$
+For our slope, we want to try to understand the effect of $x_1$, which holding $x_2$ constant:
+
+$$
+E(y|x_1=a, x_2=c) = \beta_0 + \beta_1a + \beta_2c
+$$
+And now let's see what happens when we increase a by a unit of 1, while still holding $x_2$ constant:
+
+$$
+E(y|x_1=a+1, x_2=c) = \beta_0 + \beta_1(a+1) + \beta_2c
+$$
+Again, if we take the difference between these two, most things cancel out. Importantly, $\beta_2c$ gets canceled out and we're left with $\beta_1$. This is the power of multiple regression, having the ability to do this sort of statistical control. $\beta_1$ is the effect of $x_1$ holding $x_2$ constant and $\beta_2$ is the effect of $x_2$ holding $x_1$ constant.
+
+We can represent the variance of our predictors by using circles (see below). There is some overlap (speaks to the relationship between $x_1$ and $x_2$) and there is overlap with our outcome Y. There are 3 areas that represent variance we are explaining in our outcome as a function of our two predictors. 
 
 
+![](images/multiple_regression_variance.png)
+- $R^2 = a + b + c$
+- a is unique to $x_1$ and is $\beta_1$
+- b is unique to $x_2$ and is $\beta_2$
+- c is interesting because it could be predicted by either predictor
+- $sr^2$ standardizes $\beta_1$ and $\beta_2$ into the same kind of metric as $R^2$ to give you the percent of variance explained and can be extending for a model with more predictors.
 
+### Demo 1: US arrests
 
+- US arrests in each state
+- always good to visualize data before jumping into analysis, for example, can check for outliers
+- the correlation matrix is also useful to see how predictors may be related to each other
+
+```{r}
+library(GGally) 
+library(janitor)
+
+data_arrests <- USArrests %>%
+  as_tibble() %>%
+  clean_names()
+
+data_arrests
+
+ggpairs(data_arrests)
+
+```
+
+First model, we'll look at using just 1 predictor:
+
+```{r}
+m1 <- lm(murder ~ assault, data = data_arrests)
+
+summary(m1)
+```
+
+- $R^2$ is 0.64, so we're already explaining a good proportion of the variance with this one predictor.
+- Our p value indicates we're explaining more variance than by chance alone (it's significant)
+
+Second model, we'll look at using 2 predictors:
+
+```{r}
+m2 <- lm(murder ~ assault + urban_pop, data = data_arrests)
+
+summary(m2)
+```
+
+- $R^2$ is now 0.66, so we're explaining a little bit more variance 
+- We have a significant F-test, which is a test of the model as a whole
+- Looking at the t tests is helpful for understanding each individual predictor while controlling for the other predictors
+- Assault is a significant predictor, but urban population is not 
+
+Here's a package to get the squared semi partial correlation, which tells you the contribution each predictor makes to the overall model. Note, there is some shared predicted variance, but the squared semi partial correlation gives us the unique variance for each predictor. This means that if you add up the squared semi partial proportions, it will not add up to the $R^2$. 
+
+```{r}
+library(BetterReg)
+
+parts(model = m2, pred=2)
+```
+
+### Demo 2: CrossFit data
+
+Here we're looking at the outcome of clean weight with predictors of: weight and time on mile 1.
+
+```{r}
+mydat
+
+ggpairs(mydat)
+
+m3 <- lm(clean_weight ~ weight + mile1, data = mydat)
+
+summary(m3)
+
+parts(model = m2, pred=2)
+```
+
+- Overall, F test is significant 
+- t test for weight is significant 
+- t test for mile 1 is marginally significant
+- we can see that weight accounts for a much greater proportion of the explained variance, so the dominant predictor in our model
 
