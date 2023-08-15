@@ -529,3 +529,118 @@ parts(model = m2, pred=2)
 - t test for mile 1 is marginally significant
 - we can see that weight accounts for a much greater proportion of the explained variance, so the dominant predictor in our model
 
+## Categorical Predictors
+
+- example: sex difference in anti social behavioral in adolescents 
+  - could do this as a t sample t test
+  - OR could do this as a regression model
+
+$$
+Y  = \beta_0 + \beta_1male + \epsilon
+$$
+- male = 0 (female)
+- male = 1 (male)
+
+*male is our 1 indicator variable*
+
+In our continuous predictor examples, if you plot out the data points, you'll get a scatter plot. But with a categorical predictor, if you plot it out, you'll get a bunch of dots at 0 for female and 1 for male. We're still interested in the mean difference. Regression slope is the change in y for 1 unit change in x. So if you mark the mean at 0 and the mean at 1 and draw a line connecting the two, that would be your slope and can draw the triangle to get your $\beta_1$.
+
+![](images/cat_predictor_beta1.png)
+
+
+$$
+E(Y|male = 0) = \beta_0 
+$$
+- this is our $\mu_1$ or mean for females
+
+$$
+E(Y|male = 1) = \beta_0 + \beta_1
+$$
+
+- this is our $\mu_2$ or mean for males
+
+$$
+\mu_2 - \mu_1 = \beta_1
+$$
+
+So we get 2 parameters out of our regression model: $\beta_1$ and $\beta_2$ 
+- $\beta_1$ is the parameter that gives us the mean difference between the two groups
+- $\beta_2$ is interpreted as the mean of whatever group has been coded as 0, in this case mean for females.
+
+### What if we have a predictor with 3+ categories
+
+- one way ANOVA model or we can use a regression model
+- **example: marital couples assigned to 3 possible conditions (control, CBT, insight oriented)**
+- we need C-1 (conditions - 1) indicator variables/coding variables (if I know you're not in control or CBT, you must be in insight - so 2 indicators would be necessary)
+
+- 3 categories, we need 2 coding variables
+- let's make control the reference group 
+
+![](images/coding_vars.png)
+
+Our regression model: 
+
+$$
+Y = \beta_0 + \beta_1CBT + \beta_2Insight + \epsilon
+$$
+$$
+E(y|control = \beta_0)
+$$
+$$
+E(y|CBT = \beta_0 + \beta_1)
+$$
+By plugging into our regression equation:
+- CBT is coded as 1 for CBT, so we have to add $\beta_1$ (because $\beta_1$x1)
+- But CBT is coded as 0 for insight, so we do not add $\beta_1$ (because it would just be $\beta_2$x0)
+
+$$
+E(y|insight = \beta_0 + \beta_2)
+$$
+So interpreting our parameters:
+- $\beta_0$ represents average for the control group
+- $\beta_1$ is the mean difference between CBT and control
+- $\beta_2$ is the mean difference between insight and control  
+
+To get the overall main effect, we want to test $\beta_1$ AND $\beta_2$ (rather than them individually)
+
+- in an ANOVA our $H_0$ would look something like this:
+
+$$
+H_0: \mu_{control} = \mu_{CBT} = \mu_{insight}
+$$
+
+- in our regression model our $H_0$ would look something like this:
+
+
+$H_0$: $\beta_1$ AND $\beta_2$ are simultaneously 0. 
+
+So we'll do a joint test of both parameters simultaneously. Do the two parameters ($\beta_1$ and $\beta_2$) in our model offer a better improvement to the fit compared to just having $beta_0$.
+
+### Continuous + Categorical Predictors
+
+Doing a regression model as opposed to an ANOVA allows for the flexibility to include a mix of continuous and categorical predictors. 
+
+- example, let's add in a continuous variable of "baseline satisfaction" (BL)
+
+$$
+Y = \beta_0 + \beta_1CBT + \beta_2insight + \beta_3BL + \epsilon
+$$
+- so now we have a mix of categorical and continuous variables
+- analogous to ANCOVA - analysis of covariants
+- BL will be held as constant in below equations
+
+$$
+E(y|control, BL = c) = \beta_0 + \beta_3c)
+$$
+$$
+E(y|CBT, BL = c) = \beta_0 + \beta_1 + \beta_3c)
+$$
+$$
+E(y|insight, BL = c) = \beta_0 + \beta_2 + \beta_3c)
+$$
+- $\beta_1$ is the difference between control and CBT while holding BL constant
+- $\beta_2$ is the difference between control and insight while holding BL constant
+- this model results in 1 slope from $\beta_3$ and we really have 3 intercepts to adjust the levels of regression line for each of the categories (Control, CBT, insight)
+- note: this model is looking at simple main effects only, not considering interactions
+
+
